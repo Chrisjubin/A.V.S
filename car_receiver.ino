@@ -1,12 +1,14 @@
-#include <RH_ASK.h>
 #include <SPI.h>
+#include <SoftwareSerial.h>
+SoftwareSerial mySerial(10, 11); // RX, TX
 
 byte switchpin = 13;
 long duration;
 int distance;
 int safedist = 17;
-byte usltrig = 12;
-byte uslecho = 10;
+byte usltrig = 13;
+byte uslecho = 12;
+//pin 10 and 11 for bt rx(10) and tx(11)
 byte usrtrig = 7;
 byte usrecho = 6;
 byte usftrig = 9;
@@ -25,9 +27,10 @@ byte rightback = 3;
 byte leftfront = 4;
 byte leftback = 5;
 byte cb;
+int state = 0;
 
 bool switchon;
-RH_ASK driver;
+
 
 void setup() {
   pinMode(switchpin, INPUT_PULLUP);
@@ -44,7 +47,8 @@ void setup() {
   pinMode(leftfront, OUTPUT);
   pinMode(leftback, OUTPUT);
 
-  driver.init();
+   Serial.begin(9600); 
+ mySerial.begin(9600);
 }
 
 void loop() {
@@ -58,67 +62,44 @@ void loop() {
 
 
   if (switchon == true) {
-    uint8_t data;
-    uint8_t datalen = sizeof(data);
-    if (data == 1) {
-      //switch on motor driver front pins
+    if(mySerial.available() > 0){ // Checks whether data is comming from the serial port
+    state = mySerial.read(); // Reads the data from the serial port
+ }
+ // Controlling the motors
+ if (state == '1') {
+  digitalWrite(rightfront, HIGH);
+  digitalWrite(rightback, LOW);
+  digitalWrite(leftfront, HIGH);
+  digitalWrite(leftback, LOW); 
+ }
+ else if (state == '2') {
+  digitalWrite(rightfront, LOW);
+  digitalWrite(rightback, HIGH);
+  digitalWrite(leftfront, LOW);
+  digitalWrite(leftback, HIGH);
+ }
+ else if (state == '3') {
+  digitalWrite(rightfront, LOW);
+  digitalWrite(rightback, HIGH);
+  digitalWrite(leftfront, HIGH);
+  digitalWrite(leftback, LOW);  
+ }
+  else if (state == '4') {
+  digitalWrite(rightfront, HIGH);
+  digitalWrite(rightback, LOW);
+  digitalWrite(leftfront, LOW);
+  digitalWrite(leftback, HIGH);
+ }
+ else
+ {
+   Serial.println("0 or unidentified");
+   digitalWrite(rightfront, LOW);
+  digitalWrite(rightback, LOW);
+  digitalWrite(leftfront, LOW);
+  digitalWrite(leftback, LOW);
+ }
 
-      digitalWrite(rightfront, HIGH);
-      digitalWrite(leftfront, HIGH);
-
-      //switch off other back pins
-
-      digitalWrite(rightback, LOW);
-      digitalWrite(leftback, LOW);
-
-    }
-
-    else if (data == 2) {
-      //switch on motor driver back pins
-
-      digitalWrite(rightback, HIGH);
-      digitalWrite(leftback, HIGH);
-
-      //switch off other front pins
-
-      digitalWrite(rightfront, LOW);
-      digitalWrite(leftfront, LOW);
-
-    }
-
-    else if (data == 3) {
-      //switch on right back and left front pins to turn right
-
-      digitalWrite(rightback, HIGH);
-      digitalWrite(leftfront, HIGH);
-
-      //set left back and front back to off
-
-      digitalWrite(rightfront, LOW);
-      digitalWrite(leftback, LOW);
-
-    }
-
-    else if (data == 4) {
-      //switch on right front and left back pins to turn right
-
-      digitalWrite(rightfront, HIGH);
-      digitalWrite(leftback, HIGH);
-
-      //set left front and right back to off
-
-      digitalWrite(rightback, LOW);
-      digitalWrite(leftfront, LOW);
-    }
-
-    else if (data == 0) {
-      digitalWrite(rightfront, LOW);
-      digitalWrite(leftfront, LOW);
-      digitalWrite(rightback, LOW);
-      digitalWrite(leftback, LOW);
-    }
   }
-
 
   if (switchon = false) {
 
