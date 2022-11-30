@@ -2,25 +2,31 @@
 #include <SoftwareSerial.h>
 SoftwareSerial mySerial(10, 11); // RX, TX
 
-byte switchpin = 13;
+byte switchpin = 33;
 long duration;
 int distance;
 int safedist = 17;
+int safefalldist = 3; 
 byte usltrig = 13;
 byte uslecho = 12;
 //pin 10 and 11 for bt rx(10) and tx(11)
 byte usrtrig = 7;
 byte usrecho = 6;
-byte usftrig = 9;
-byte usfecho = 8;
+byte usftrig = 23;
+byte usfecho = 25;
+byte usledgtrig = 8;
+byte usledgecho = 9;
 int leftdist;
 int leftdur;
 int frontdist;
 int frontdur;
 int rightdist;
 int rightdur;
-byte buzz = 25;
-byte pir = 23;
+
+int ledgedist;
+int ledgedur;
+byte buzz = 27;
+byte pir = 29;
 
 byte rightfront = 2;
 byte rightback = 3;
@@ -106,33 +112,30 @@ void loop() {
     digitalWrite(usftrig, LOW);
     digitalWrite(usltrig, LOW);
     digitalWrite(usrtrig, LOW);
+    digitalWrite(usledgtrig, LOW);
 
     delayMicroseconds(2);
 
     digitalWrite(usftrig, HIGH);
     digitalWrite(usltrig, HIGH);
     digitalWrite(usrtrig, HIGH);
+    digitalWrite(usledgtrig, HIGH);
 
     delayMicroseconds(10);
 
     digitalWrite(usftrig, LOW);
     digitalWrite(usltrig, LOW);
     digitalWrite(usrtrig, LOW);
+    digitalWrite(usledgtrig, LOW);
 
     frontdur = pulseIn(usfecho, HIGH);
-    frontdist = frontdur * 0.034 / 2;
     leftdur = pulseIn(uslecho, HIGH);
-    leftdist = leftdur * 0.034 / 2;
     rightdur = pulseIn(usrecho, HIGH);
-    rightdist = frontdur * 0.034 / 2;
-
-    digitalWrite(rightfront, HIGH);
-    digitalWrite(rightback, LOW);
-    digitalWrite(leftfront, HIGH);
-    digitalWrite(leftback, LOW);
-
-
-
+    ledgedur = pulseIn(usledgecho, HIGH);
+    frontdist = frontdur * 0.034 / 2;
+    leftdist = leftdur * 0.034 / 2;
+    rightdist = rightdur * 0.034 / 2;
+    ledgedist = ledgedur * 0.034 / 2;
 
     if (digitalRead(pir) == HIGH) {
       digitalWrite(buzz, HIGH);
@@ -144,7 +147,7 @@ void loop() {
 
     if (frontdist <= safedist && leftdist >= safedist && rightdist >= safedist) {
 
-      //  Serial.println("obstacle infront ! , turning right");
+      //  Serial.println("obstacle infront ! , turning");
       cb = random(0, 2);
       if (cb == 0) {
         digitalWrite(rightfront, HIGH);
@@ -167,7 +170,7 @@ void loop() {
       }
 
 
-    } else if (frontdist <= safedist && leftdist >= safedist && rightdist <= safedist) {
+    } if (frontdist <= safedist && leftdist >= safedist && rightdist <= safedist) {
       digitalWrite(rightfront, HIGH);
       digitalWrite(rightback, LOW);
       digitalWrite(leftfront, LOW);
@@ -180,11 +183,15 @@ void loop() {
       }
 
       delay(600);
-    } else if (frontdist <= safedist && leftdist <= safedist && rightdist >= safedist) {
+      
+    } 
+            
+      else if (frontdist <= safedist && leftdist <= safedist && rightdist >= safedist) {
       digitalWrite(rightfront, LOW);
       digitalWrite(rightback, HIGH);
       digitalWrite(leftfront, HIGH);
       digitalWrite(leftback, LOW);
+      delay(600);
       //   Serial.println("obstacle infront and on left , turning right");
       if (digitalRead(pir) == HIGH) {
         digitalWrite(buzz, HIGH);
@@ -199,7 +206,6 @@ void loop() {
       digitalWrite(leftfront, LOW);
       digitalWrite(leftback, HIGH);
       delay(3500);
-      cb = random(0, 2);
       //  Serial.println("obstacle in front & right & left, going back and turning");
       if (digitalRead(pir) == HIGH) {
         digitalWrite(buzz, HIGH);
@@ -207,6 +213,7 @@ void loop() {
         digitalWrite(buzz, LOW);
       }
 
+      cb = random(0, 2);
 
       if (cb == 0) {
         digitalWrite(rightfront, HIGH);
@@ -222,6 +229,10 @@ void loop() {
         delay(600);
       }
     } else {
+    digitalWrite(rightfront, HIGH);
+    digitalWrite(rightback, LOW);
+    digitalWrite(leftfront, HIGH);
+    digitalWrite(leftback, LOW);
     }
   }
 }
